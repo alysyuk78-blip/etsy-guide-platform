@@ -2,8 +2,22 @@ import type { Block } from "@/content/types";
 import { resourceLinks } from "@/content/links";
 import { Checklist } from "./Checklist";
 import { Figure } from "./figures/Figures";
-import { AlertTriangle, Info, Sparkles, Copy, Check } from "lucide-react";
+import { AlertTriangle, Info, Sparkles, Copy, Check, TriangleAlert, Calculator, CirclePlay } from "lucide-react";
 import { useState } from "react";
+
+/* ── позначки посібника: ті самі іконки Lucide, що й у PDF ── */
+const MARK_ICONS: Record<string, { Icon: typeof TriangleAlert; label: string }> = {
+  "⚠": { Icon: TriangleAlert, label: "Помилка, яка коштує грошей або магазину" },
+  "🧮": { Icon: Calculator, label: "Тут потрібен калькулятор" },
+  "✦": { Icon: Sparkles, label: "Тут допомагає AI" },
+  "▶": { Icon: CirclePlay, label: "Відео до етапу" },
+};
+
+function MarkIcon({ glyph }: { glyph: string }) {
+  const m = MARK_ICONS[glyph];
+  if (!m) return null;
+  return <m.Icon className="h-[18px] w-[18px] text-[hsl(var(--ink))]" role="img" aria-label={m.label} />;
+}
 
 /* ── активні посилання на джерела ─────────────────────── */
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -146,7 +160,7 @@ export function BlockView({ b }: { b: Block }) {
                 <tr key={ri} className="border-b border-dashed border-line last:border-b-0">
                   {row.map((cell, ci) => (
                     <td key={ci} className={`py-2.5 pr-4 align-top leading-relaxed ${ci === 0 ? "font-medium" : "text-ink-soft"}`}>
-                      <Marker text={cell} />
+                      {MARK_ICONS[cell] ? <MarkIcon glyph={cell} /> : <Marker text={cell} />}
                     </td>
                   ))}
                 </tr>
