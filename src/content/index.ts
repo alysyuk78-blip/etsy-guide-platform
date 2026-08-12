@@ -95,14 +95,14 @@ export const feeReference: { fee: string; size: string; when: string }[] = [
 ];
 
 export const feeReferenceTakeRate = {
-  label: "Реальна частка Etsy (take rate, Q2 2026)",
+  label: "Корпоративний revenue take rate Etsy (Q2 2026)",
   size: "25,9%",
-  when: "Фактична частка обороту з урахуванням реклами й сервісів",
+  when: "Виручка Etsy / GMS. Не є ставкою комісії окремого продавця і не використовується у формулах вище",
 };
 
 export const feeSources = [
   "Etsy Fees & Payments Policy — etsy.com/legal/fees/",
-  "Etsy Payments Policy (ставка для України) — etsy.com/legal/etsy-payments/",
-  "Etsy Q2 2026 Earnings (take rate) — investors.etsy.com",
-  "Митні правила США — e-export.ukrposhta.ua",
+  "Etsy processing fee для України — help.etsy.com/hc/en-gb/articles/115015628847-What-are-Payment-Processing-Fees-for-Selling-on-Etsy",
+  "Etsy Q2 2026 Form 10-Q (визначення take rate) — investors.etsy.com/sec-filings/all-sec-filings/content/0001370637-26-000080/etsy-20260630.htm",
+  "Процедура Укрпошти для США — e-export.ukrposhta.ua/oformlennya-vidpravlen-do-ssha-za-novymy-mytnymy-pravylamy-pokrokova-instrukcziya-dlya-korektnogo-rozrahunku/",
 ];
