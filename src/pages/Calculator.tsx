@@ -517,9 +517,18 @@ function SheetFees() {
       <div className="mt-6 rounded-xl border border-line bg-white/60 p-5">
         <p className="meta-label mb-3">Джерела</p>
         <ul className="space-y-1.5 font-mono2 text-[12.5px] text-ink-soft">
-          {feeSources.map((s) => (
-            <li key={s}>· {s}</li>
-          ))}
+          {feeSources.map((s) => {
+            const url = s.split(" — ").pop() ?? "";
+            const name = s.slice(0, s.length - url.length - 3);
+            return (
+              <li key={s}>
+                · {name} —{" "}
+                <a href={`https://${url}`} target="_blank" rel="noopener noreferrer" className="src-link">
+                  {url}
+                </a>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
