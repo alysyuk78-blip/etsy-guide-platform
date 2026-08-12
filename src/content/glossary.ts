@@ -83,6 +83,11 @@ export const glossary: GlossaryGroup[] = [
     name: "Правила",
     terms: [
       { term: "Creativity Standards", def: "Головний документ: що взагалі можна продавати на Etsy" },
+      { term: "Made by seller", def: "Категорія Creativity Standards: виготовлено вами вручну або на вашому обладнанні (3D-принтер, лазер, ЧПК, вишивальна машина); дизайн — ваш оригінальний" },
+      { term: "Designed by seller", def: "Категорія Creativity Standards: ваш оригінальний дизайн — цифровий файл або виріб через виробничого партнера; партнера задекларувати, ШІ розкрити" },
+      { term: "Handpicked by seller", def: "Категорія Creativity Standards: вінтаж 20+ років, природні знахідки, тематичні набори; набір має бути осмисленою композицією" },
+      { term: "Sourced by seller", def: "Категорія Creativity Standards: матеріали для рукоділля, товари під персоналізацію покупцем; персоналізація має бути справжньою" },
+      { term: "What Can I Sell on Etsy", def: "Офіційна сторінка Etsy з повним переліком того, що дозволено продавати" },
       { term: "Production partner", def: "Підрядник у виробництві. Має бути задекларований" },
       { term: "Prohibited items", def: "Заборонені товари" },
       { term: "AI disclosure", def: "Обов’язкове зазначення в описі, що товар створено з використанням ШІ" },
