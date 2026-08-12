@@ -45,8 +45,22 @@ function Marker({ text }: { text: string }) {
     <>
       {parts.map((p, i) => {
         if (/^\[(Etsy|Дані|Практика)\]$/.test(p)) {
+          const markerMeta = {
+            "[Etsy]": {
+              className: "text-accent-deep border-[hsl(var(--accent))]/40 bg-accent-soft",
+              title: "Офіційне джерело Etsy: перевірте, чи це обов’язкова policy, чи рекомендація Seller Handbook",
+            },
+            "[Дані]": {
+              className: "text-[hsl(var(--good))] border-[hsl(var(--good))]/35 bg-[hsl(var(--good))]/10",
+              title: "Перевірюваний факт або агреговані дані; не правило Etsy",
+            },
+            "[Практика]": {
+              className: "text-ink-soft border-line bg-paper-deep",
+              title: "Практична евристика для тесту; не policy requirement і не гарантія",
+            },
+          }[p as "[Etsy]" | "[Дані]" | "[Практика]"];
           return (
-            <span key={i} className="marker-chip text-accent-deep border-[hsl(var(--accent))]/40 bg-accent-soft">
+            <span key={i} title={markerMeta.title} className={`marker-chip ${markerMeta.className}`}>
               {p}
             </span>
           );

@@ -2,6 +2,15 @@ import { useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { feeReference, feeReferenceTakeRate, feeSources, trackerRows } from "@/content";
 import { useLocalState } from "@/hooks/useProgress";
+import {
+  FOP_GROUP_3_2026,
+  calculateFopGroup3Tax2026,
+  calculatePrice,
+  calculatePriceCheck,
+  calculateSellerFees,
+  calculateUkrposhtaDutyEstimate,
+  clampNumber,
+} from "@/lib/calculator";
 
 /* ── допоміжні ──────────────────────────────────────── */
 const usd = (n: number) =>
@@ -14,12 +23,16 @@ function NumField({
   value,
   onChange,
   step = 0.5,
+  min = 0,
+  max,
 }: {
   label: string;
   hint?: string;
   value: number;
   onChange: (v: number) => void;
   step?: number;
+  min?: number;
+  max?: number;
 }) {
   return (
     <label className="block">
@@ -27,8 +40,10 @@ function NumField({
       <input
         type="number"
         step={step}
+        min={min}
+        max={max}
         value={Number.isFinite(value) ? value : ""}
-        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+        onChange={(e) => onChange(clampNumber(Number(e.target.value), min, max))}
         className="calc-input mt-1.5"
       />
       {hint && <span className="mt-1 block text-[12px] leading-snug text-ink-faint">{hint}</span>}
@@ -89,18 +104,29 @@ function SheetPrice() {
   });
   const s = (k: keyof typeof v) => (n: number) => setV((p) => ({ ...p, [k]: n }));
 
-  const r = useMemo(() => {
-    const cost = v.materials + v.hours * v.rate + v.packaging + v.shipping + v.duty + v.other;
-    const totalRate = v.tx + v.ppPct + v.conv + v.offsiteShare * v.offsiteRate + v.ads;
-    const denom = 1 - totalRate - v.margin;
-    const price = denom > 0 ? (cost + v.ppFix + v.listing) / denom - v.buyerShipping : NaN;
-    const revenue = price + v.buyerShipping;
-    const fees = revenue * totalRate + v.ppFix + v.listing;
-    const profit = revenue - fees - cost;
-    const marginFact = revenue > 0 ? profit / revenue : 0;
-    const hourly = v.hours > 0 ? (profit + v.hours * v.rate) / v.hours : 0;
-    return { cost, totalRate, price, revenue, fees, profit, marginFact, hourly };
-  }, [v]);
+  const r = useMemo(
+    () =>
+      calculatePrice({
+        materials: v.materials,
+        hours: v.hours,
+        hourlyRate: v.rate,
+        packaging: v.packaging,
+        shipping: v.shipping,
+        duty: v.duty,
+        other: v.other,
+        transactionRate: v.tx,
+        paymentProcessingRate: v.ppPct,
+        paymentProcessingFixed: v.ppFix,
+        listingFee: v.listing,
+        conversionRate: v.conv,
+        offsiteShare: v.offsiteShare,
+        offsiteRate: v.offsiteRate,
+        adsRate: v.ads,
+        targetMargin: v.margin,
+        buyerShipping: v.buyerShipping,
+      }),
+    [v]
+  );
 
   return (
     <div>
@@ -112,7 +138,7 @@ function SheetPrice() {
           <NumField label="Ваша ставка за годину" hint="Скільки коштує ваша година. Не занижуйте" value={v.rate} onChange={s("rate")} />
           <NumField label="Пакування" hint="Коробка, папір, наліпка, листівка" value={v.packaging} onChange={s("packaging")} />
           <NumField label="Фактична доставка" hint="Реальна вартість відправки, а не те, що платить покупець" value={v.shipping} onChange={s("shipping")} />
-          <NumField label="Мито США (з аркуша «Мито США»)" hint="Для відправлень у США платить відправник" value={v.duty} onChange={s("duty")} />
+          <NumField label="Мито США (з аркуша «Мито США»)" hint="Для комерційних відправлень Укрпоштою до $2 500 — сума з системи перевізника; інші служби перевіряйте окремо" value={v.duty} onChange={s("duty")} />
           <NumField label="Інші витрати на одиницю" hint="Оренда, обладнання, підписки / кількість товарів" value={v.other} onChange={s("other")} />
           <div className="flex items-end">
             <div className="w-full rounded-lg bg-paper-deep px-3.5 py-2.5">
@@ -123,19 +149,19 @@ function SheetPrice() {
         </FieldGroup>
 
         <FieldGroup title="Параметри Etsy — перевірте">
-          <NumField label="Комісія за транзакцію" hint="Офіційно 6,5% (0,065) від суми замовлення разом з доставкою" value={v.tx} onChange={s("tx")} step={0.005} />
-          <NumField label="Обробка платежу, %" hint="Ставка для України: 6% (0,06)" value={v.ppPct} onChange={s("ppPct")} step={0.005} />
+          <NumField label="Комісія за транзакцію" hint="Офіційно 6,5% (0,065) від суми замовлення разом з доставкою" value={v.tx} onChange={s("tx")} step={0.005} max={1} />
+          <NumField label="Обробка платежу, %" hint="Ставка для України: 6% (0,06)" value={v.ppPct} onChange={s("ppPct")} step={0.005} max={1} />
           <NumField label="Обробка платежу, фікс." hint="Ставка для України: $0,30" value={v.ppFix} onChange={s("ppFix")} step={0.05} />
           <NumField label="Плата за лістинг" hint="$0,20 за публікацію / поновлення раз на 4 місяці" value={v.listing} onChange={s("listing")} step={0.05} />
-          <NumField label="Конвертація валюти" hint="2,5%, якщо валюта лістингу ≠ USD. При USD ставте 0" value={v.conv} onChange={s("conv")} step={0.005} />
-          <NumField label="Частка замовлень з Offsite Ads" hint="Скільки % ваших продажів приходить із зовнішньої реклами (0,2 = 20%)" value={v.offsiteShare} onChange={s("offsiteShare")} step={0.05} />
-          <NumField label="Ставка Offsite Ads" hint="15% (0,15) до обороту $10 000 за 12 міс, потім 12%" value={v.offsiteRate} onChange={s("offsiteRate")} step={0.01} />
-          <NumField label="Витрати на Etsy Ads, % від виручки" hint="0, якщо реклама не запущена" value={v.ads} onChange={s("ads")} step={0.01} />
+          <NumField label="Конвертація валюти" hint="2,5%, якщо валюта лістингу ≠ USD. При USD ставте 0" value={v.conv} onChange={s("conv")} step={0.005} max={1} />
+          <NumField label="Частка замовлень з Offsite Ads" hint="Скільки % ваших продажів приходить із зовнішньої реклами (0,2 = 20%)" value={v.offsiteShare} onChange={s("offsiteShare")} step={0.05} max={1} />
+          <NumField label="Ставка Offsite Ads" hint="15% (0,15), якщо магазин нижче порогу $10 000 за 365 днів; 12% після досягнення порогу" value={v.offsiteRate} onChange={s("offsiteRate")} step={0.01} max={1} />
+          <NumField label="Витрати на Etsy Ads, % від виручки" hint="0, якщо реклама не запущена" value={v.ads} onChange={s("ads")} step={0.01} max={1} />
         </FieldGroup>
 
         <FieldGroup title="Що хочете заробляти">
-          <NumField label="Бажана рентабельність (прибуток / виручка)" hint="30% (0,3) — здоровий орієнтир. Менше 20% — ризиковано" value={v.margin} onChange={s("margin")} step={0.05} />
-          <NumField label="Скільки покупець платить за доставку" hint="0 = «безкоштовна доставка», вартість зашита в ціну (рекомендовано)" value={v.buyerShipping} onChange={s("buyerShipping")} />
+          <NumField label="Бажана рентабельність (прибуток / виручка)" hint="30% (0,3) — плановий орієнтир, а не правило Etsy" value={v.margin} onChange={s("margin")} step={0.05} max={0.95} />
+          <NumField label="Скільки покупець платить за доставку" hint="0 = доставка включена в ціну; окрема плата або включення в ціну — ваш сценарій тестування" value={v.buyerShipping} onChange={s("buyerShipping")} />
         </FieldGroup>
 
         <div className="rounded-xl border border-line bg-white/60 p-5">
@@ -145,12 +171,12 @@ function SheetPrice() {
           <ResultRow label="Виручка разом (ціна + доставка для покупця)" value={usd(r.revenue)} />
           <ResultRow label="Комісії Etsy в грошах" value={usd(r.fees)} />
           <ResultRow label="Прибуток з одиниці" value={usd(r.profit)} strong />
-          <ResultRow label="Рентабельність фактична" value={pct(r.marginFact)} strong />
-          <ResultRow label="Ваш заробіток за годину (з урахуванням прибутку)" value={usd(r.hourly)} />
+          <ResultRow label="Рентабельність за введеними припущеннями" value={pct(r.margin)} strong />
+          <ResultRow label="Ваш заробіток за годину (з урахуванням прибутку)" value={usd(r.hourlyEarnings)} />
           {isFinite(r.price) && (
             <Verdict
-              kind={r.marginFact >= 0.25 ? "ok" : r.marginFact >= 0.15 ? "mid" : "bad"}
-              text={r.marginFact >= 0.25 ? "Товар підходить" : r.marginFact >= 0.15 ? "Ризиковано — шукайте здешевлення" : "Не підходить для Etsy"}
+              kind={r.margin >= 0.25 ? "ok" : r.margin >= 0.15 ? "mid" : "bad"}
+              text={r.margin >= 0.25 ? "Є запас для коливань витрат" : r.margin >= 0.15 ? "Запас невеликий — перевірте сценарії" : "Запас мінімальний — перегляньте ціну або витрати"}
             />
           )}
           <div className="mt-4 space-y-1.5 font-mono2 text-[12px] text-ink-faint">
@@ -168,17 +194,16 @@ function SheetCheck() {
   const [v, setV] = useLocalState("etsy:calc:check", { price: 45, buyerShipping: 8, cogs: 15, shipDuty: 16 });
   const s = (k: keyof typeof v) => (n: number) => setV((p) => ({ ...p, [k]: n }));
 
-  const r = useMemo(() => {
-    const revenue = v.price + v.buyerShipping;
-    const tx = -(revenue * 0.065);
-    const pp = -(revenue * 0.06 + 0.3);
-    const listing = -0.2;
-    const fees = tx + pp + listing;
-    const profit = revenue + fees - v.cogs - v.shipDuty;
-    const margin = revenue > 0 ? profit / revenue : 0;
-    const offsite = profit - revenue * 0.15;
-    return { revenue, tx, pp, listing, fees, profit, margin, offsite };
-  }, [v]);
+  const r = useMemo(
+    () =>
+      calculatePriceCheck({
+        price: v.price,
+        buyerShipping: v.buyerShipping,
+        cost: v.cogs,
+        shippingAndDuty: v.shipDuty,
+      }),
+    [v]
+  );
 
   return (
     <div>
@@ -193,18 +218,18 @@ function SheetCheck() {
         <div className="rounded-xl border border-line bg-white/60 p-5">
           <p className="meta-label mb-3">Розкладка</p>
           <ResultRow label="Виручка разом" value={usd(r.revenue)} strong />
-          <ResultRow label="Комісія за транзакцію 6,5%" value={usd(r.tx)} />
-          <ResultRow label="Обробка платежу 6% + $0,30" value={usd(r.pp)} />
-          <ResultRow label="Плата за лістинг" value={usd(r.listing)} />
+          <ResultRow label="Комісія за транзакцію 6,5%" value={usd(r.transactionFee)} />
+          <ResultRow label="Обробка платежу 6% + $0,30" value={usd(r.paymentProcessingFee)} />
+          <ResultRow label="Плата за лістинг" value={usd(r.listingFee)} />
           <ResultRow label="Комісії Etsy разом" value={usd(r.fees)} />
           <ResultRow label="Собівартість" value={usd(-v.cogs)} />
           <ResultRow label="Доставка і мито" value={usd(-v.shipDuty)} />
           <ResultRow label="Прибуток" value={usd(r.profit)} strong accent />
           <ResultRow label="Рентабельність" value={pct(r.margin)} strong />
-          <ResultRow label="Якщо замовлення прийшло з Offsite Ads (−15%)" value={usd(r.offsite)} />
+          <ResultRow label="Якщо замовлення прийшло з Offsite Ads (−15%)" value={usd(r.profitWithOffsiteAds)} />
           <Verdict
             kind={r.margin >= 0.25 ? "ok" : r.margin >= 0.15 ? "mid" : "bad"}
-            text={r.margin >= 0.25 ? "Ціна робоча" : r.margin >= 0.15 ? "На межі — перевірте доставку" : "Ціна збиткова або майже"}
+            text={r.margin >= 0.25 ? "Є запас для коливань витрат" : r.margin >= 0.15 ? "Запас невеликий — перевірте доставку й рекламу" : "Маржа низька — рішення залежить від ваших ризиків і обсягу"}
           />
         </div>
       </div>
@@ -214,33 +239,31 @@ function SheetCheck() {
 
 /* ── 3. Мито США ────────────────────────────────────── */
 function SheetDuty() {
-  const [v, setV] = useLocalState("etsy:calc:duty", { declared: 45, shipping: 14, rate: 0.1 });
+  const [v, setV] = useLocalState("etsy:calc:duty", { declared: 45, rate: 0.1 });
   const s = (k: keyof typeof v) => (n: number) => setV((p) => ({ ...p, [k]: n }));
-  const base = v.declared + v.shipping;
-  const duty = base * v.rate;
+  const duty = calculateUkrposhtaDutyEstimate(v.declared, v.rate);
   const threshold = 2500;
 
   return (
     <div>
       <SheetHead
         title="Мито при відправленні в США"
-        desc="З 29.08.2025 правило de minimis скасовано. З 24.07.2026 мито розраховує і сплачує відправник."
+        desc="Орієнтовний розрахунок лише для комерційних відправлень Укрпоштою до США вартістю до $2 500. Остаточну суму автоматично визначає система Укрпошти."
       />
       <div className="grid gap-5 lg:grid-cols-2">
         <FieldGroup title="Введіть">
           <NumField label="Вартість товару в декларації, USD" hint="Реальна вартість. Заниження — порушення закону США" value={v.declared} onChange={s("declared")} />
-          <NumField label="Вартість доставки, USD" hint="Може включатися в базу — уточніть у калькуляторі Укрпошти" value={v.shipping} onChange={s("shipping")} />
-          <NumField label="Ставка мита за кодом УКТЗЕД" hint="Базовий орієнтир для України ~10% (0,10). Точну ставку дає калькулятор Укрпошти" value={v.rate} onChange={s("rate")} step={0.01} />
+          <NumField label="Ставка мита за 10-значним кодом УКТЗЕД" hint="З 24.07.2026 ставка залежить від коду товару. Візьміть її з калькулятора Укрпошти" value={v.rate} onChange={s("rate")} step={0.01} max={1} />
         </FieldGroup>
         <div className="rounded-xl border border-line bg-white/60 p-5">
           <p className="meta-label mb-3">Розрахунок</p>
-          <ResultRow label="База для мита" value={usd(base)} />
-          <ResultRow label="Мито до сплати" value={usd(duty)} strong accent />
+          <ResultRow label="Заявлена вартість вкладення" value={usd(v.declared)} />
+          <ResultRow label="Орієнтовне мито" value={usd(duty)} strong accent />
           <ResultRow label="Мито у % від ціни товару" value={v.declared > 0 ? pct(duty / v.declared) : "—"} />
           <ResultRow label="Поріг спрощеного оформлення" value={usd(threshold)} />
           <Verdict
-            kind={base <= threshold ? "ok" : "mid"}
-            text={base <= threshold ? "Спрощене оформлення, платите ви" : "Понад поріг — розмитнює покупець"}
+            kind={v.declared <= threshold ? "ok" : "mid"}
+            text={v.declared <= threshold ? "Перевірте суму в системі Укрпошти" : "Понад $2 500: цей аркуш не застосовується"}
           />
         </div>
       </div>
@@ -248,12 +271,12 @@ function SheetDuty() {
         <p className="meta-label mb-3">Що зробити</p>
         <ol className="space-y-2 text-[14px] text-ink-soft">
           <li>1. Знайти 10-значний код УКТЗЕД свого товару</li>
-          <li>2. Порахувати точне мито в калькуляторі Укрпошти (особистий кабінет)</li>
+          <li>2. Порахувати точне мито в калькуляторі або особистому кабінеті Укрпошти</li>
           <li>3. Підставити суму в аркуш «1. Ціна товару», рядок «Мито США»</li>
           <li>4. Додати в опис лістингу абзац про можливі митні збори</li>
         </ol>
         <p className="mt-4 border-t border-dashed border-line pt-3 font-mono2 text-[11px] text-ink-faint">
-          Джерело: Export School Укрпошти, правила чинні з 24.07.2026
+          Межі цього аркуша: процедура Укрпошти для комерційних вкладень до $2 500. Для іншого перевізника перевірте його тариф, брокера та умови DDP/DAP окремо.
         </p>
       </div>
     </div>
@@ -402,7 +425,7 @@ function SheetJournal() {
     const cogs = parseFloat(r.cogs) || 0;
     const nbu = parseFloat(r.nbu) || 0;
     const total = price + shipping;
-    const fees = total * 0.065 + total * 0.06 + 0.3 + 0.2;
+    const fees = -calculateSellerFees(total).total;
     const profit = total - fees - cogs;
     return { total, fees, cogs, profit, margin: total > 0 ? profit / total : 0, uah: total * nbu };
   });
@@ -413,6 +436,7 @@ function SheetJournal() {
         : a,
     { total: 0, fees: 0, cogs: 0, profit: 0, uah: 0 }
   );
+  const taxes = calculateFopGroup3Tax2026(sums.uah);
 
   const cellCls = "w-full min-w-[70px] rounded border border-transparent bg-transparent px-1.5 py-1 font-mono2 text-[12.5px] outline-none focus:border-[hsl(var(--accent))] focus:bg-white";
 
@@ -420,7 +444,7 @@ function SheetJournal() {
     <div>
       <SheetHead
         title="Журнал продажів"
-        desc="Дохід ФОП рахується з ПОВНОЇ суми покупця (стовпець «Разом»), а не з того, що дійшло на рахунок."
+        desc="Для обережного планування журнал використовує повну суму замовлення до комісій Etsy. Підтвердьте базу й дату доходу для власної схеми Etsy → Payoneer → банк у бухгалтера або власній ІПК."
       />
       <div className="overflow-x-auto scroll-thin rounded-xl border border-line bg-white/60">
         <table className="w-full min-w-[980px] border-collapse text-[13px]">
@@ -475,8 +499,12 @@ function SheetJournal() {
         <Plus className="h-4 w-4" /> Додати продаж
       </button>
       <div className="mt-5 rounded-xl border border-line bg-white/60 p-5">
-        <ResultRow label="Єдиний податок 5% від доходу в грн" value={`${(sums.uah * 0.05).toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} грн`} strong accent />
-        <p className="mt-3 text-[12.5px] text-ink-faint">Ставку перевірте у свого бухгалтера — залежить від групи ФОП.</p>
+        <ResultRow label="Єдиний податок 5% (III група, без ПДВ)" value={`${taxes.singleTax.toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} грн`} />
+        <ResultRow label="Військовий збір 1%" value={`${taxes.militaryLevy.toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} грн`} />
+        <ResultRow label="Разом податки з доходу — 6%" value={`${taxes.incomeTaxes.toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} грн`} strong accent />
+        <p className="mt-3 text-[12.5px] text-ink-faint">
+          ЄСВ не включено: у 2026 році мінімальний внесок — {FOP_GROUP_3_2026.monthlyMinimumSocialContributionUah.toLocaleString("uk-UA", { minimumFractionDigits: 2 })} грн/міс., якщо немає законної пільги. Це довідковий розрахунок для ФОП III групи без ПДВ; перевірте свою ситуацію з бухгалтером.
+        </p>
       </div>
     </div>
   );
@@ -557,7 +585,7 @@ function SheetIntro() {
           {[
             ["1. Ціна товару", "Головний аркуш. Вводите собівартість — отримуєте рекомендовану ціну і прибуток."],
             ["2. Перевірка ціни", "Уже маєте ціну? Перевірте, скільки з неї реально залишиться."],
-            ["3. Мито США", "Розрахунок мита за новими правилами (з 24.07.2026 платить відправник)."],
+            ["3. Мито США", "Орієнтир для комерційних відправлень Укрпоштою до $2 500; фінальна сума — в системі перевізника."],
             ["4. Реклама", "Беззбитковий ROAS: скільки можна платити за продаж, щоб не працювати в збиток."],
             ["5. План 12 тижнів", "Трекер запуску: етапи, дедлайни, статус."],
             ["6. Облік продажів", "Журнал замовлень: дохід, комісії, прибуток, дані для ФОП."],
@@ -573,15 +601,17 @@ function SheetIntro() {
       <div className="mt-5 rounded-xl bg-[hsl(var(--ink))] p-5 text-[#fff]">
         <p className="font-mono2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Головне правило</p>
         <p className="mt-2 text-[14.5px] leading-relaxed">
-          Etsy забирає близько 26% обороту з урахуванням реклами (take rate Q2 2026 = 25,9%). Якщо після всіх витрат
-          залишається менше 25% ціни — товар не підходить для Etsy.
+          Рахуйте власні seller fees за сценарієм замовлення: 6,5% transaction fee, 6% + $0,30 processing для України,
+          $0,20 за лістинг та лише застосовні вам реклама, конвертація й податки. Корпоративний revenue take rate 25,9%
+          у Q2 2026 — це виручка Etsy, поділена на GMS; він не є комісією конкретного продавця і не підставляється у формулу.
         </p>
       </div>
       <div className="mt-5 rounded-xl border border-[hsl(var(--accent))]/50 bg-accent-soft p-5">
         <p className="font-mono2 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent-deep">Увага</p>
         <p className="mt-2 text-[14px] leading-relaxed text-ink-soft">
-          Калькулятор не є податковою консультацією. Дохід ФОП рахується з ПОВНОЇ суми, яку сплатив покупець (з
-          урахуванням комісій Etsy) — див. аркуш «Облік продажів».
+          Калькулятор не є податковою консультацією. Для планування він консервативно бере повну суму замовлення до
+          комісій Etsy. Податкову базу, дату доходу та облік виплат через Payoneer перевірте для свого випадку з
+          бухгалтером або в індивідуальній податковій консультації — див. аркуш «Облік продажів».
         </p>
       </div>
     </div>

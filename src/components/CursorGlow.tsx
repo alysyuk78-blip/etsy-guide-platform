@@ -7,17 +7,18 @@ import { useEffect, useRef, useState } from "react";
  * Працює лише на пристроях із точним вказівником; на тачскрінах не рендериться.
  */
 export function CursorGlow() {
-  const [enabled, setEnabled] = useState(false);
+  const [enabled] = useState(
+    () =>
+      window.matchMedia("(pointer: fine)").matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
   const dotRef = useRef<HTMLDivElement>(null);
   const pos = useRef({ x: -100, y: -100 });
   const target = useRef({ x: -100, y: -100 });
   const raf = useRef(0);
 
   useEffect(() => {
-    const fine = window.matchMedia("(pointer: fine)").matches;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!fine || reduced) return;
-    setEnabled(true);
+    if (!enabled) return;
 
     const onMove = (e: MouseEvent) => {
       target.current.x = e.clientX;
@@ -46,7 +47,7 @@ export function CursorGlow() {
       cancelAnimationFrame(raf.current);
       document.documentElement.classList.remove("custom-cursor");
     };
-  }, []);
+  }, [enabled]);
 
   if (!enabled) return null;
 

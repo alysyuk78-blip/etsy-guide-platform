@@ -15,6 +15,10 @@ export function Layout({
 }) {
   const [open, setOpen] = useState(false);
   const [progress, setProgress] = useState(0);
+  const handleNav = (id: string) => {
+    setOpen(false);
+    onNav(id);
+  };
 
   useEffect(() => {
     const onScroll = () => {
@@ -26,11 +30,9 @@ export function Layout({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => setOpen(false), [route]);
-
   const nav = (
     <nav className="flex h-full flex-col">
-      <button onClick={() => onNav("home")} className="border-b border-line px-6 pb-5 pt-6 text-left">
+      <button onClick={() => handleNav("home")} className="border-b border-line px-6 pb-5 pt-6 text-left">
         <div className="text-[26px] font-extrabold leading-none tracking-[-0.03em] text-accent">Etsy</div>
         <div className="mt-2 text-[14.5px] font-semibold leading-tight tracking-[-0.015em]">
           Від нуля до масштабування
@@ -49,7 +51,7 @@ export function Layout({
                 return (
                   <button
                     key={i.id}
-                    onClick={() => onNav(i.id)}
+                    onClick={() => handleNav(i.id)}
                     className={`group flex w-full items-center gap-2.5 rounded-full px-3.5 py-[8px] text-left text-[13.5px] leading-snug transition-all duration-200 ${
                       active ? "bg-[hsl(var(--ink))] font-semibold text-white" : "text-ink-soft hover:bg-paper-deep hover:text-[hsl(var(--ink))]"
                     }`}
@@ -81,7 +83,7 @@ export function Layout({
 
       {/* mobile top bar */}
       <div className="glass sticky top-0 z-50 flex items-center justify-between border-b border-line/60 px-4 py-3 lg:hidden">
-        <button onClick={() => onNav("home")} className="flex items-baseline gap-2">
+        <button onClick={() => handleNav("home")} className="flex items-baseline gap-2">
           <span className="text-[20px] font-extrabold tracking-[-0.03em] text-accent">Etsy</span>
           <span className="text-[12.5px] font-semibold text-ink-soft">посібник</span>
         </button>

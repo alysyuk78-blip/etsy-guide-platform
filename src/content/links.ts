@@ -10,6 +10,9 @@ export const resourceLinks: Record<string, string> = {
   "Fees & Payments Policy": "https://www.etsy.com/legal/fees",
   "How Etsy Search Works": "https://www.etsy.com/seller-handbook/article/how-etsy-search-works/375461474487",
   "New Guidance for Listing Titles": "https://www.etsy.com/seller-handbook/article/1399426136697",
+  "Etsy Fees & Payments Policy": "https://www.etsy.com/legal/fees",
+  "Etsy Q2 2026 Form 10-Q":
+    "https://investors.etsy.com/sec-filings/all-sec-filings/content/0001370637-26-000080/etsy-20260630.htm",
   "How Etsy Uses AI to Support Sellers": "https://www.etsy.com/seller-handbook/article/1402347260856",
   "Customer Service Standards": "https://help.etsy.com/hc/en-us/articles/360036207794",
   "Etsy Community": "https://community.etsy.com",
@@ -57,7 +60,13 @@ export const resourceLinks: Record<string, string> = {
   Дія: "https://diia.gov.ua",
   Taxer: "https://taxer.ua",
   "Ліга:Закон": "https://ips.ligazakon.net",
+  "ДПС: ставки 2026": "https://ck.tax.gov.ua/media-ark/news-ark/978697.html",
+  "ЗІР ДПС про Payoneer і Wise": "https://zir.tax.gov.ua/main/bz/view/?id=41107&src=ques",
+  "Податковий кодекс України": "https://zakon.rada.gov.ua/laws/show/2755-17#Text",
   "Export School Укрпошти": "https://e-export.ukrposhta.ua",
+  "Укрпошта: процедура США з 24.07.2026":
+    "https://e-export.ukrposhta.ua/oformlennya-vidpravlen-do-ssha-za-novymy-mytnymy-pravylamy-pokrokova-instrukcziya-dlya-korektnogo-rozrahunku/",
+  "Укрпошта: тарифи та митний розрахунок": "https://www.ukrposhta.ua/ua/taryfy",
   Payoneer: "https://www.payoneer.com",
 
   /* ── Практики та їхні канали ────────────────────────── */

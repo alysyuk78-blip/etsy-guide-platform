@@ -176,16 +176,16 @@ function Fig4() {
         ))}
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="rounded-full bg-accent px-3 py-1 font-mono2 text-[12px] font-semibold text-white">−26% take rate 2026</span>
-        <span className="font-mono2 text-[11px] text-ink-faint">кожна ланка обов’язкова</span>
+        <span className="rounded-full bg-accent px-3 py-1 font-mono2 text-[12px] font-semibold text-white">seller fees — за вашим сценарієм</span>
+        <span className="font-mono2 text-[11px] text-ink-faint">25,9% corporate take rate ≠ ваша комісія</span>
       </div>
       <div className="mt-4 rounded-lg border border-[hsl(var(--bad))]/30 bg-[hsl(var(--bad))]/5 px-4 py-3">
         <p className="font-mono2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--bad))]">
-          Дві помилки, які коштують 18% доходу
+          Дві податкові зони ризику
         </p>
         <ol className="mt-2 space-y-1 text-[13.5px] text-ink-soft">
-          <li>1. Виведення на особисту картку замість підприємницького рахунку</li>
-          <li>2. Гроші залишились на Payoneer на кінець звітного кварталу</li>
+          <li>1. Переказ на особистий рахунок замість підприємницького</li>
+          <li>2. Залишок на Payoneer наприкінці звітного періоду без власної ІПК</li>
         </ol>
       </div>
     </Shell>
@@ -352,19 +352,19 @@ function Fig7() {
           {[
             {
               k: "Заголовок",
-              v: "До 15 слів. Спершу — ЩО це, далі колір, матеріал, розмір. Без повторів і слів «perfect», «beautiful». Ключі — у перших 40 символах: стільки видно на телефоні.",
+              v: "Etsy радить ясний заголовок, часто менш ніж із 15 слів: назва товару й ключові об’єктивні характеристики. Початок заголовка важливий для читабельності, але «40 символів» не є правилом ранжування.",
             },
             {
               k: "Фото",
-              v: "Перше фото — горизонтальне або квадратне, від 2000 px, товар по центру з відступом. Менше 635 px знижує позицію в пошуку.",
+              v: "Якісне перше фото допомагає клікам і конверсії. Розмір від 2000 px та безпечні поля — практична рекомендація для чіткого відображення й кадрування.",
             },
             {
               k: "13 тегів",
-              v: "Усі 13, словосполученнями. 3 про товар, 3 про матеріал, 3 про привід, 2 про стиль, 2 довгі хвости з автопідказок Etsy.",
+              v: "Використовуйте релевантні багатослівні теги. Розподіл за товаром, матеріалом, приводом і стилем — стартова гіпотеза для тесту, не формула Etsy.",
             },
             {
               k: "Атрибути + опис",
-              v: "Найголовніше у 2026 році: саме звідси розмовний AI-пошук розуміє, що це за товар. Ціль — 80%+ заповненості атрибутів.",
+              v: "Заповнюйте всі правдиві релевантні атрибути й точний опис. Пошук оцінює лістинг цілісно; 80% — евристика внутрішнього аудиту, не поріг Etsy.",
             },
           ].map((a) => (
             <div key={a.k} className="rounded-lg bg-[hsl(var(--paper))] px-4 py-3.5">
@@ -385,7 +385,7 @@ const funnel = [
     en: "Impressions",
     symptom: "Мало показів",
     diag: "Проблема в SEO",
-    fix: "Переписати заголовок і теги, добити атрибути до 80%",
+    fix: "Перевірити заголовок і теги, заповнити всі релевантні атрибути",
     w: "100%",
   },
   {
@@ -538,7 +538,7 @@ function Fig10() {
 function Fig11() {
   return (
     <Shell caption="Рис. 11. Класичний пошук проти розмовного AI-пошуку">
-      <FigLabel>Два пошуки, дві логіки · у травні 2026 Etsy запустив застосунок усередині ChatGPT і інтегрувався з Gemini та Copilot</FigLabel>
+      <FigLabel>Два способи сформулювати потребу · в обох випадках потрібні повні й правдиві дані лістинга</FigLabel>
       <div className="grid gap-3 md:grid-cols-2">
         <div className="rounded-lg border border-line bg-[hsl(var(--paper))] p-5">
           <p className="font-mono2 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint">Класичний пошук</p>
@@ -546,9 +546,9 @@ function Fig11() {
             silver ring for mom <span className="text-accent">⌕</span>
           </div>
           <ul className="mt-4 space-y-2 text-[13.5px] text-ink-soft">
-            <li>Шукає збіг <b>СЛІВ</b> у заголовку й тегах</li>
-            <li>Виграє той, хто вгадав ключову фразу</li>
-            <li>Головне — <b>заголовок і 13 тегів</b></li>
+            <li>Враховує ключові слова та релевантність у всьому лістингу</li>
+            <li>Заголовок, теги й атрибути допомагають зіставленню</li>
+            <li>Кліки, конверсія та сервіс також впливають на результат</li>
           </ul>
         </div>
         <div className="rounded-lg border border-[hsl(var(--accent))]/50 bg-accent-soft p-5">
@@ -557,15 +557,15 @@ function Fig11() {
             <span className="text-accent font-semibold">@Etsy</span> подарунок мамі до $100, вона любить садівництво
           </div>
           <ul className="mt-4 space-y-2 text-[13.5px] text-ink-soft">
-            <li>Шукає збіг <b>ЗМІСТУ</b>: що товар реально собою являє</li>
-            <li>Виграє той, у кого повні структуровані дані</li>
-            <li>Головне — <b>АТРИБУТИ й опис</b></li>
+            <li>Інтерпретує природний опис потреби покупця</li>
+            <li>Повні атрибути й опис допомагають зрозуміти товар</li>
+            <li>Немає підтвердженого Etsy порогу заповненості атрибутів</li>
           </ul>
         </div>
       </div>
       <p className="mt-4 rounded-lg bg-[hsl(var(--ink))] px-4 py-3 text-[13.5px] leading-snug text-[#fff]">
-        <b className="text-accent">Що робити зараз:</b> довести заповненість атрибутів до 80%+ на топових товарах. Той
-        самий підхід працює на Amazon (Rufus) і Walmart (Sparky).
+        <b className="text-accent">Що робити зараз:</b> заповнити всі релевантні атрибути, зберегти ясний заголовок,
+        точний опис і релевантні теги; оцінювати результат за власною аналітикою.
       </p>
     </Shell>
   );
