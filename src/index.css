@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Apple-inspired clean palette */
+    --paper: 0 0% 100%;
+    --paper-deep: 220 13% 96%;
+    --ink: 240 3% 12%;
+    --ink-soft: 240 2% 44%;
+    --ink-faint: 240 2% 55%;
+    --line: 240 4% 86%;
+    --accent: 19 88% 47%;
+    --accent-deep: 19 80% 38%;
+    --accent-soft: 24 85% 94%;
+    --good: 100 32% 32%;
+    --bad: 4 72% 44%;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: 0 0% 100%;
+    --card-foreground: var(--ink);
+    --popover: 0 0% 100%;
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: var(--paper-deep);
+    --secondary-foreground: var(--ink);
+    --muted: var(--paper-deep);
+    --muted-foreground: var(--ink-soft);
+    --accent-t: var(--accent-soft);
+    --accent-t-foreground: var(--accent-deep);
+    --destructive: var(--bad);
+    --destructive-foreground: 0 0% 98%;
+    --border: var(--line);
+    --input: var(--line);
+    --ring: var(--accent);
+    --radius: 0.75rem;
+    --sidebar-background: var(--paper);
+    --sidebar-foreground: var(--ink-soft);
+    --sidebar-primary: var(--ink);
+    --sidebar-primary-foreground: var(--paper);
+    --sidebar-accent: var(--paper-deep);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--line);
+    --sidebar-ring: var(--accent);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", "Segoe UI", sans-serif;
+    font-feature-settings: "cv05", "ss01";
+  }
+  ::selection {
+    background: hsl(var(--accent));
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  .font-mono2 {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  .text-ink-soft {
+    color: hsl(var(--ink-soft));
+  }
+  .text-ink-faint {
+    color: hsl(var(--ink-faint));
+  }
+  .bg-paper-deep {
+    background-color: hsl(var(--paper-deep));
+  }
+  .bg-accent-soft {
+    background-color: hsl(var(--accent-soft));
+  }
+  .text-accent {
+    color: hsl(var(--accent));
+  }
+  .text-accent-deep {
+    color: hsl(var(--accent-deep));
+  }
+  .bg-accent {
+    background-color: hsl(var(--accent));
+  }
+  .border-line {
+    border-color: hsl(var(--line));
+  }
+  .dashed-sep {
+    border-top: 1px dashed hsl(var(--line));
+  }
+  .num-outline {
+    -webkit-text-stroke: 1.5px hsl(var(--accent));
+    color: transparent;
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.82);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+}
+
+@layer components {
+  .meta-label {
+    @apply font-mono2 text-[11px] uppercase tracking-[0.14em] text-ink-faint;
+  }
+  .link-u {
+    @apply underline decoration-dashed underline-offset-4 decoration-1 hover:text-accent transition-colors;
+  }
+  .marker-chip {
+    @apply inline-flex items-center gap-1 font-mono2 text-[11px] font-medium px-1.5 py-0.5 rounded-sm border border-line;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--line));
+    border-radius: 3px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* Apple-style pill buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-[hsl(var(--ink))] px-7 py-3.5 text-[14.5px] font-semibold text-white transition-all duration-300 hover:bg-accent hover:shadow-[0_10px_30px_-8px_hsl(var(--accent)/0.55)] active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2.5 rounded-full border border-[hsl(var(--line))] bg-white px-7 py-3.5 text-[14.5px] font-semibold text-[hsl(var(--ink))] transition-all duration-300 hover:border-[hsl(var(--ink))] hover:shadow-[0_10px_28px_-12px_rgba(0,0,0,0.28)] active:scale-[0.98];
+  }
+  .card-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-18px_rgba(0,0,0,0.22)];
+  }
+}
+
+/* reading progress bar */
+.readbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: hsl(var(--accent));
+  z-index: 70;
+  transition: width 0.15s linear;
+}
+
+/* hero entrance */
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: riseIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-1 { animation-delay: 0.06s; }
+.rise-2 { animation-delay: 0.14s; }
+.rise-3 { animation-delay: 0.22s; }
+.rise-4 { animation-delay: 0.3s; }
+.rise-5 { animation-delay: 0.38s; }
+
+/* scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .reveal {
+    animation: none;
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* nav read dot blink */
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.dot-active {
+  animation: dotPulse 2.4s ease-in-out infinite;
+}
+
+/* orange hero bar draw-in */
+@keyframes barGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.bar-grow {
+  transform-origin: left;
+  animation: barGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+}
+
+/* checklist check */
+.check-item input:checked + span {
+  text-decoration: line-through;
+  text-decoration-color: hsl(var(--accent));
+  text-decoration-thickness: 1.5px;
+  color: hsl(var(--ink-faint));
+}
+
+/* custom cursor: hide the native arrow in every state — only the "Etsy" label is visible */
+@media (pointer: fine) {
+  .custom-cursor,
+  .custom-cursor * {
+    cursor: none !important;
+  }
+  .custom-cursor input,
+  .custom-cursor textarea,
+  .custom-cursor [contenteditable] {
+    caret-color: hsl(19 88% 47%);
+  }
+}
+.cursor-dot {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: hsl(19 88% 47%);
+  transition:
+    filter 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.cursor-dot.cursor-blurred {
+  width: 30px;
+  height: 30px;
+  filter: blur(7px);
+  opacity: 0.8;
+}
+
+/* input number styling */
+.calc-input {
+  @apply w-full rounded-xl border border-line bg-white px-3 py-2 text-[15px] font-medium outline-none transition-shadow focus:ring-2 focus:ring-[hsl(var(--accent))]/40 focus:border-[hsl(var(--accent))];
+}
