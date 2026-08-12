@@ -1,23 +1,81 @@
 import type { Block } from "@/content/types";
+import { resourceLinks } from "@/content/links";
 import { Checklist } from "./Checklist";
 import { Figure } from "./figures/Figures";
 import { AlertTriangle, Info, Sparkles, Copy, Check } from "lucide-react";
 import { useState } from "react";
 
+/* ── активні посилання на джерела ─────────────────────── */
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const linkNames = Object.keys(resourceLinks).sort((a, b) => b.length - a.length).map(escapeRe);
+const DOMAIN_RE_SRC = String.raw`(?:[\w-]+\.)+(?:com|ai|ua|io|net|org|bg)(?:\/[\w./-]*[\w/-])?`;
+const DOMAIN_EXACT = new RegExp(`^${DOMAIN_RE_SRC}$`);
+const LINK_RE = new RegExp(
+  `(\\[Etsy\\]|\\[Дані\\]|\\[Практика\\]|(?<![\\w'ʼ])(?:${linkNames.join("|")})(?![\\w'ʼ])|(?<![\\w'ʼ/@.])${DOMAIN_RE_SRC}(?![\\w'ʼ]))`,
+  "g"
+);
+
+function SrcLink({ name, href }: { name: string; href: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="src-link">
+      {name}
+    </a>
+  );
+}
+
 function Marker({ text }: { text: string }) {
-  // підсвічування маркерів джерел у тексті
-  const parts = text.split(/(\[Etsy\]|\[Дані\]|\[Практика\])/g);
+  // підсвічування маркерів джерел у тексті + активні посилання на ресурси й домени
+  const parts = text.split(LINK_RE);
   if (parts.length === 1) return <>{text}</>;
   return (
     <>
-      {parts.map((p, i) =>
-        /^\[(Etsy|Дані|Практика)\]$/.test(p) ? (
-          <span key={i} className="marker-chip text-accent-deep border-[hsl(var(--accent))]/40 bg-accent-soft">
-            {p}
-          </span>
-        ) : (
-          <span key={i}>{p}</span>
-        )
+      {parts.map((p, i) => {
+        if (/^\[(Etsy|Дані|Практика)\]$/.test(p)) {
+          return (
+            <span key={i} className="marker-chip text-accent-deep border-[hsl(var(--accent))]/40 bg-accent-soft">
+              {p}
+            </span>
+          );
+        }
+        if (resourceLinks[p]) return <SrcLink key={i} name={p} href={resourceLinks[p]} />;
+        if (DOMAIN_EXACT.test(p)) return <SrcLink key={i} name={p} href={`https://${p}`} />;
+        return <span key={i}>{p}</span>;
+      })}
+    </>
+  );
+}
+
+/* посилання в кінці цитат: «… Блог · YouTube», «… Стаття», «… Кейс» */
+function quoteRefLinks(source = ""): Record<string, string> {
+  if (source.includes("Dylan Jahraus"))
+    return { Блог: "https://dylanjahraus.com", YouTube: "https://www.youtube.com/@DylanJahraus" };
+  if (source.includes("Starla Moore")) return { YouTube: "https://www.youtube.com/@StarlaMoore" };
+  if (source.includes("Kate Hayes")) return { YouTube: "https://www.youtube.com/@KateHayes" };
+  if (source.includes("Marmalead")) return { Стаття: "https://blog.marmalead.com" };
+  if (source.includes("Growing Your Craft")) return { Стаття: "https://growingyourcraft.com/blog" };
+  if (source.includes("Cynthia Treen")) return { Кейс: "https://www.etsy.com/seller-handbook" };
+  return {};
+}
+
+function QuoteText({ text, source }: { text: string; source?: string }) {
+  const m = text.match(/ (Блог · YouTube|YouTube|Стаття|Кейс)$/);
+  if (!m || m.index === undefined) return <Marker text={text} />;
+  const body = text.slice(0, m.index);
+  const ref = m[1];
+  const links = quoteRefLinks(source);
+  return (
+    <>
+      <Marker text={body} />{" "}
+      {ref === "Блог · YouTube" ? (
+        <>
+          {links["Блог"] ? <SrcLink name="Блог" href={links["Блог"]} /> : "Блог"}
+          {" · "}
+          {links["YouTube"] ? <SrcLink name="YouTube" href={links["YouTube"]} /> : "YouTube"}
+        </>
+      ) : links[ref] ? (
+        <SrcLink name={ref} href={links[ref]} />
+      ) : (
+        ref
       )}
     </>
   );
@@ -145,8 +203,8 @@ export function BlockView({ b }: { b: Block }) {
     case "quote":
       return (
         <blockquote className="my-6 border-l-[3px] border-[hsl(var(--accent))] pl-5 py-1">
-          <p className="text-[16px] leading-[1.7] text-[hsl(var(--ink))]"><Marker text={b.text} /></p>
-          {b.source && <footer className="mt-2 font-mono2 text-[12px] text-ink-faint">— {b.source}</footer>}
+          <p className="text-[16px] leading-[1.7] text-[hsl(var(--ink))]"><QuoteText text={b.text} source={b.source} /></p>
+          {b.source && <footer className="mt-2 font-mono2 text-[12px] text-ink-faint">— <Marker text={b.source} /></footer>}
         </blockquote>
       );
     case "figure":
