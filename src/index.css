@@ -218,6 +218,24 @@
   animation: barGrow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
 }
 
+/* active source links */
+.src-link {
+  color: hsl(var(--accent-deep));
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: hsl(var(--accent) / 0.5);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  border-radius: 2px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease, background-color 0.2s ease;
+}
+.src-link:hover {
+  color: hsl(var(--accent));
+  text-decoration-style: solid;
+  text-decoration-color: hsl(var(--accent));
+  background-color: hsl(var(--accent) / 0.07);
+}
+
 /* checklist check */
 .check-item input:checked + span {
   text-decoration: line-through;

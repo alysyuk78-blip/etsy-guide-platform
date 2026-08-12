@@ -87,10 +87,10 @@ export function Layout({
         </button>
         <button
           onClick={() => setOpen(!open)}
-          className="rounded-full border border-line bg-white/70 p-2 transition-colors hover:bg-paper-deep"
+          className="p-1.5 text-[hsl(var(--ink))] transition-colors hover:text-accent"
           aria-label="Меню"
         >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
